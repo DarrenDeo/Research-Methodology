@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indonesian Fake News Detector</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
+        }
+        .tab.active {
+            border-bottom: 3px solid #3498db;
+            color: #3498db;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .result-label {
+            font-weight: 500;
+            color: #555;
+        }
+        .result-value {
+            font-weight: 600;
+        }
+        .result-value.fake {
+            color: #e74c3c;
+        }
+        .result-value.real {
+            color: #27ae60;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 5px;
+        }
+        .instructions {
+            background-color: #eaf7ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Indonesian Fake News Detector</h1>
+        
+        <div class="tabs">
+            <button class="tab active" data-tab="check-news">Check News</button>
+            <button class="tab" data-tab="train-models">Train Models</button>
+            <button class="tab" data-tab="about">About</button>
+        </div>
+        
+        <div id="check-news" class="tab-content active">
+            <div class="instructions">
+                <h3>Check News Headline</h3>
+                <p>Enter a news URL or headline text to check if it might be fake news.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="url-headline">URL or Headline:</label>
+                <input type="text" id="url-headline" placeholder="https://news-site.com/article or enter headline text directly">
+            </div>
+            
+            <button class="btn" id="check-btn">Check News</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing the news...</p>
+            </div>
+            
+            <div class="result-container" id="result-container">
+                <div class="result-row">
+                    <span class="result-label">Headline:</span>
+                    <span class="result-value" id="headline-result"></span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Category:</span>
+                    <span class="result-value" id="category-result"></span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Prediction:</span>
+                    <span class="result-value" id="prediction-result"></span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Confidence:</span>
+                    <span class="result-value" id="confidence-result"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="train-models" class="tab-content">
+            <div class="instructions">
+                <h3>Train Detection Models</h3>
+                <p>Train the system on multiple datasets to improve fake news detection across different categories.</p>
+            </div>
+            
+            <div class="form-group">
+                <button class="btn" id="train-btn">Start Training</button>
+                <p class="note">This process may take several minutes to complete.</p>
+            </div>
+            
+            <div class="loading" id="training-loading">
+                <div class="spinner"></div>
+                <p>Training models, please wait...</p>
+            </div>
+            
+            <div class="result-container" id="training-result">
+                <h3>Training Results</h3>
+                <div id="training-details"></div>
+            </div>
+        </div>
+        
+        <div id="about" class="tab-content">
+            <h3>About Indonesian Fake News Detector</h3>
+            <p>This tool uses advanced machine learning models to detect potentially fake news in Indonesian and English text. The system analyzes news headlines and articles across different categories:</p>
+            <ul>
+                <li><strong>Politics</strong> - Political news, elections, government</li>
+                <li><strong>Economy</strong> - Business, finance, markets</li>
+                <li><strong>Education</strong> - Schools, universities, learning</li>
+                <li><strong>Religion</strong> - Religious news and topics</li>
+                <li><strong>Technology</strong> - Tech innovations, digital trends</li>
+            </ul>
+            <p>The system uses multiple machine learning approaches including:</p>
+            <ul>
+                <li>Traditional ML (TF-IDF + Naive Bayes)</li>
+                <li>Transformer models (BERT, mBERT, XLM-RoBERTa)</li>
+            </ul>
+            <p>All predictions are provided with confidence scores to help users make informed decisions.</p>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Deactivate all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Activate the clicked tab
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Check news button functionality
+        document.getElementById('check-btn').addEventListener('click', async () => {
+            const urlOrHeadline = document.getElementById('url-headline').value.trim();
+            
+            if (!urlOrHeadline) {
+                alert('Please enter a URL or headline text');
+                return;
+            }
+            
+            // Show loading spinner
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result-container').style.display = 'none';
+            
+            try {
+                // Make actual API call to your backend
+                const response = await fetch('http://localhost:5000/api/check-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ urlOrHeadline }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const data = await response.json();
+                
+                // Hide loading spinner
+                document.getElementById('loading').style.display = 'none';
+                
+                // Show results
+                document.getElementById('result-container').style.display = 'block';
+                
+                // Populate with actual results from the backend
+                document.getElementById('headline-result').textContent = data.headline;
+                document.getElementById('category-result').textContent = data.category.charAt(0).toUpperCase() + data.category.slice(1);
+                
+                const predictionElement = document.getElementById('prediction-result');
+                const isFake = data.prediction === 'Hoax';
+                predictionElement.textContent = isFake ? 'Hoax (Fake)' : 'Not Hoax (Real)';
+                predictionElement.className = isFake ? 'result-value fake' : 'result-value real';
+                
+                document.getElementById('confidence-result').textContent = `${data.confidence}%`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').style.display = 'none';
+                alert('Error checking news. Please try again.');
+            }
+        });
+
+        // Train models button functionality
+        document.getElementById('train-btn').addEventListener('click', () => {
+            document.getElementById('training-loading').style.display = 'block';
+            document.getElementById('training-result').style.display = 'none';
+            
+            // Fetch the model performance data from CSV in the static directory
+            fetch('/static/model_performance_results.csv')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('CSV file not found or could not be loaded');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    // Parse CSV data
+                    const parsedData = parseCSV(data);
+                    console.log('Parsed CSV data:', parsedData);
+                    
+                    // Process and display results
+                    document.getElementById('training-loading').style.display = 'none';
+                    document.getElementById('training-result').style.display = 'block';
+                    
+                    const trainingDetails = generateTrainingResultsHTML(parsedData);
+                    document.getElementById('training-details').innerHTML = trainingDetails;
+                })
+                .catch(error => {
+                    console.error('Error loading model performance data:', error);
+                    alert('Could not load model performance data. Please ensure model_performance_results.csv is in the static directory.');
+                    document.getElementById('training-loading').style.display = 'none';
+                });
+        });
+        
+        // Simple CSV parser function
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            if (lines.length < 2) {
+                console.error('CSV has insufficient data');
+                return [];
+            }
+            
+            const headers = lines[0].split(',').map(h => h.trim());
+            console.log('CSV headers:', headers);
+            
+            const result = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                
+                const values = lines[i].split(',');
+                const entry = {};
+                
+                for (let j = 0; j < headers.length; j++) {
+                    if (j < values.length) {
+                        entry[headers[j]] = values[j].trim();
+                    }
+                }
+                
+                result.push(entry);
+            }
+            
+            return result;
+        }
+        
+        // Generate HTML for training results
+        function generateTrainingResultsHTML(data) {
+            if (!data || data.length === 0) {
+                return `
+                    <div class="result-row">
+                        <span class="result-label">Error:</span>
+                        <span class="result-value">No data available from performance results.</span>
+                    </div>
+                `;
+            }
+            
+            let html = '';
+            
+            // Map model names to display names
+            const modelDisplayNames = {
+                'traditional_model_all': 'Traditional Model (All Categories)',
+                'traditional_model_politics': 'Politics Category',
+                'traditional_model_economy': 'Economy Category',
+                'traditional_model_education': 'Education Category',
+                'traditional_model_religion': 'Religion Category',
+                'traditional_model_technology': 'Technology Category'
+            };
+            
+            // Generate HTML for each model
+            data.forEach(model => {
+                // Check for various possible column names
+                const modelNameKey = Object.keys(model).find(key => 
+                    key.toLowerCase().includes('model') || 
+                    key.toLowerCase().includes('name'));
+
+                const categoryKey = Object.keys(model).find(key => 
+                    key.toLowerCase().includes('category') || 
+                    key.toLowerCase().includes('name'));
+                
+                const accuracyKey = Object.keys(model).find(key => 
+                    key.toLowerCase().includes('accuracy'));
+                
+                const f1Key = Object.keys(model).find(key => 
+                    key.toLowerCase().includes('f1'));
+                
+                if (!modelNameKey || !categoryKey || !accuracyKey || !f1Key) {
+                    console.error('Missing required columns in CSV:', model);
+                    return;
+                }
+                
+                const modelName = model[modelNameKey];
+                const displayName = modelDisplayNames[modelName] || modelName;
+                const accuracy = parseFloat(model[accuracyKey] || 0).toFixed(3);
+                const f1Score = parseFloat(model[f1Key] || 0).toFixed(3);
+                
+                html += `
+                    <div class="result-row">
+                        <span class="result-label">${displayName}:</span>
+                        <span class="result-value">Accuracy: ${accuracy}, F1 Score: ${f1Score}</span>
+                    </div>
+                `;
+            });
+            
+            // Add final message
+            html += `
+                <div class="result-row">
+                    <span class="result-label">Models Saved:</span>
+                    <span class="result-value">All models saved successfully</span>
+                </div>
+            `;
+            
+            return html;
+        }
+    </script>
+</body>
+</html>
